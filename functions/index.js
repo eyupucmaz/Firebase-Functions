@@ -157,6 +157,25 @@ app.post("/login", (req, res) => {
 	if (Object.keys(errors).length > 0) res.status(400).json(errors);
 
 	//* if we do not have any errors
+	firebase
+		.auth()
+		.signInWithEmailAndPassword(user.email, user.password)
+		.then((data) => {
+			return data.user.getIdToken();
+		})
+		.then((token) => {
+			return res.json({ token });
+		})
+		.catch((err) => {
+			console.error(err);
+			if (err.code === "auth/wrong-password") {
+				return res
+					.status(403)
+					.json({ general: "Wrong credentials, please try again" });
+			} else {
+				return res.status(500).json({ error: err.code });
+			}
+		});
 });
 
 // Exporting express request, it should looks like that https://baseurl.com/api/${OUR_REQUESTS}
