@@ -3,6 +3,7 @@ const admin = require("firebase-admin");
 const app = require("express")();
 admin.initializeApp();
 
+//Firebase Config Object
 const firebaseConfig = {
 	apiKey: "AIzaSyByVLWQ8m7uNuuV1OfPAdv2WVYlTlSO0gk",
 	authDomain: "socialapp-7ddbf.firebaseapp.com",
@@ -20,6 +21,7 @@ firebase.initializeApp(firebaseConfig);
 
 const db = admin.firestore();
 
+//Get all posts
 app.get("/screams", (req, res) => {
 	db.collection("screams")
 		.orderBy("createdAt", "desc")
@@ -39,6 +41,7 @@ app.get("/screams", (req, res) => {
 		.catch((err) => console.error(err));
 });
 
+//Create a post
 app.post("/scream", (req, res) => {
 	//!Dont need that cheking in express
 	// if (req.method !== "POST") {
@@ -62,6 +65,7 @@ app.post("/scream", (req, res) => {
 		});
 });
 
+// Validation helper functions
 const isEmpty = (str) => {
 	if (str.trim() === "") return true;
 	else return false;
@@ -74,7 +78,6 @@ const isEmail = (email) => {
 };
 
 //Singup Route
-
 app.post("/signup", (req, res) => {
 	const newUser = {
 		email: req.body.email,
@@ -140,7 +143,6 @@ app.post("/signup", (req, res) => {
 });
 
 //Login Route
-
 app.post("/login", (req, res) => {
 	const user = {
 		email: req.body.email,
