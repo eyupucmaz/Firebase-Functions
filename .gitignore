@@ -66,3 +66,4 @@ node_modules/
 .env
 # config file
 functions/util/config.js
+.firebaserc
