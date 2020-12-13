@@ -1,10 +1,16 @@
 const { db, admin } = require("../util/admin");
 const firebase = require("firebase");
 const config = require("../util/config");
-const { validateSignUpData, validateLoginData } = require("../util/validators");
+const {
+	validateSignUpData,
+	validateLoginData,
+	reduceUserDetails,
+} = require("../util/validators");
+const { user } = require("firebase-functions/lib/providers/auth");
 
 firebase.initializeApp(config);
 
+//SIGNUP USER
 exports.signUp = (req, res) => {
 	const newUser = {
 		email: req.body.email,
@@ -24,7 +30,9 @@ exports.signUp = (req, res) => {
 		.get()
 		.then((doc) => {
 			if (doc.exists) {
-				return res.status(400).json({ handle: "this handle is already taken" });
+				return res
+					.status(400)
+					.json({ handle: "this username is already taken" });
 			} else {
 				return firebase
 					.auth()
@@ -59,6 +67,7 @@ exports.signUp = (req, res) => {
 		});
 };
 
+//LOGIN USER
 exports.login = (req, res) => {
 	const user = {
 		email: req.body.email,
@@ -93,6 +102,48 @@ exports.login = (req, res) => {
 		});
 };
 
+//ADD USER DETAILS
+exports.addUserDetails = (req, res) => {
+	let userDetails = reduceUserDetails(req.body);
+
+	db.doc(`/users/${req.user.handle}`)
+		.update(userDetails)
+		.then(() => {
+			return res.json({ message: "Details added successfully" });
+		})
+		.catch((err) => {
+			return res.status(500).json({ error: err.code });
+		});
+};
+
+//GET USER DETAILS
+exports.getUserDetails = (req, res) => {
+	let userData = {};
+
+	db.doc(`/users/${req.user.handle}`)
+		.get()
+		.then((doc) => {
+			if (doc.exists) {
+				userData.credentials = doc.data();
+				return db
+					.collection("likes")
+					.where("userHandle", "==", req.user.handle)
+					.get();
+			}
+		})
+		.then((data) => {
+			userData.likes = [];
+			data.forEach((doc) => {
+				userData.likes.push(doc.data());
+			});
+			return res.json(userData);
+		})
+		.catch((err) => {
+			return res.status(500).json({ error: err.code });
+		});
+};
+
+//UPLOAD PROFILE IMAGE
 exports.uploadImage = (req, res) => {
 	const BusBoy = require("busboy");
 	const path = require("path");
